@@ -1,0 +1,1 @@
+# fxtt-mt5-strategy-checklist
