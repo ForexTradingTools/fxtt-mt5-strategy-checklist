@@ -25,8 +25,6 @@ Product page: [Strategy Checklist for MetaTrader 5](https://forextradingtools.eu
 - Multiple instances on one chart with unique `TAG` values
 - Visual-only operation: no orders, alerts, or broker actions
 
-![Strategy Checklist product preview](screenshots/strategy-checklist-featured.png)
-
 ## Installation
 
 ### Using the compiled release
@@ -134,7 +132,6 @@ fxtt-mt5-strategy-checklist/
 ├── releases/
 │   └── FXTT_StrategyChecklist.ex5       # Compiled MT5 indicator
 ├── screenshots/
-│   ├── strategy-checklist-featured.png  # Product preview
 │   └── strategy-checklist-mt5-chart.png # Indicator on an MT5 chart
 ├── LICENSE
 └── README.md
