@@ -33,7 +33,7 @@ input int  DialogWidth                = 280;   // Dialog total width (px)
 input int  MarginFromEdge             = 20;    // Distance from chart edge (px)
 input int  InnerPaddingX              = 8;     // Left/right inner padding (px)
 input int  InnerPaddingY              = 6;     // Top inner padding (px)
-input int  RowHeight                  = 24;    // Height of each row (px) ← THIS NOW WORKS
+input int  RowHeight                  = 24;    // Height of each row (px)
 input int  RowSpacing                 = 2;     // Extra gap between rows (px)
 
 input group "=== Appearance ==="
@@ -101,10 +101,10 @@ bool IsSectionHeader(const string &text)
 //+------------------------------------------------------------------+
 string BuildSaveKey()
 {
-   string key = DATA_DIR + "//";
-   if(SavePerSymbol)    key += Symbol();
+   string key = DATA_DIR + "//" + TAG;
+   if(SavePerSymbol)    key += "_" + Symbol();
    if(SavePerTimeframe) key += "_" + IntegerToString(Period());
-   key += DATA_FILE;
+   key += "_" + DATA_FILE;
    return key;
 }
 
@@ -173,9 +173,6 @@ public:
    virtual bool OnEvent(const int id, const long &lparam,
                         const double &dparam, const string &sparam);
 
-   //--- called by event map when any checkbox fires ON_CHANGE
-   void         OnCheckboxChanged(void);
-
    void         ResetAllChecks(void);
    void         SaveState(void);
    void         LoadState(void);
@@ -204,10 +201,11 @@ CPanelDialog::CPanelDialog(void) : m_visible_count(0)
 CPanelDialog::~CPanelDialog(void)
 {
    SaveState();
+   // Destroy() already frees controls added to the dialog; delete only what survived
    for(int i = 0; i < MAX_VISIBLE; i++)
    {
-      if(m_checkboxes[i] != NULL) { delete m_checkboxes[i]; m_checkboxes[i] = NULL; }
-      if(m_labels[i]     != NULL) { delete m_labels[i];     m_labels[i]     = NULL; }
+      if(CheckPointer(m_checkboxes[i]) == POINTER_DYNAMIC) delete m_checkboxes[i];
+      if(CheckPointer(m_labels[i])     == POINTER_DYNAMIC) delete m_labels[i];
    }
 }
 
@@ -219,6 +217,7 @@ bool CPanelDialog::Create(const long chart, const string name,
 {
    if(!CAppDialog::Create(chart, name, subwin, x1, y1, x2, y2))
       return false;
+   ObjectSetInteger(m_chart_id, m_name + "Caption", OBJPROP_COLOR, TitleColor);
    if(!BuildRows())
       return false;
    LoadState();
@@ -231,32 +230,20 @@ bool CPanelDialog::Create(const long chart, const string name,
 bool CPanelDialog::OnEvent(const int id, const long &lparam,
                             const double &dparam, const string &sparam)
 {
-   // Let CAppDialog handle drag/close/resize first
-   if(CAppDialog::OnEvent(id, lparam, dparam, sparam))
-      return true;
-
-   // Detect a checkbox click: CHARTEVENT_OBJECT_CLICK on one of our boxes
-   if(id == CHARTEVENT_OBJECT_CLICK)
+   // CCheckBox toggles itself on click, then sends ON_CHANGE with its control id
+   if(id == CHARTEVENT_CUSTOM + ON_CHANGE)
    {
       for(int vi = 0; vi < m_visible_count; vi++)
       {
-         if(m_is_section[vi]) continue;
-         if(m_checkboxes[vi] == NULL) continue;
-
-         // Compare the clicked object name with this checkbox's name
-         if(sparam == m_checkboxes[vi].Name() ||
-            StringFind(sparam, m_checkboxes[vi].Name()) == 0)
-         {
-            // Toggle happens automatically inside CCheckBox on click;
-            // we just need to sync our state array
-            int oi = m_orig_index[vi];
-            m_state[oi] = m_checkboxes[vi].Checked();
-            RefreshColors();
-            return true;
-         }
+         if(m_is_section[vi] || m_checkboxes[vi] == NULL || lparam != m_checkboxes[vi].Id())
+            continue;
+         m_state[m_orig_index[vi]] = m_checkboxes[vi].Checked();
+         RefreshColors();
+         SaveState();
+         return true;
       }
    }
-   return false;
+   return CAppDialog::OnEvent(id, lparam, dparam, sparam);
 }
 
 //+------------------------------------------------------------------+
@@ -315,7 +302,7 @@ void CPanelDialog::ApplyCheckboxFont(CCheckBox *cb, const string &label)
    cb.Color(UncheckedColor);
 
    // Font is set on the underlying chart object after creation
-   string objName = cb.Name();
+   string objName = cb.Name() + "Label"; // CCheckBox draws its text in a child CEdit
    if(ObjectFind(m_chart_id, objName) >= 0)
    {
       ObjectSetString(m_chart_id,  objName, OBJPROP_FONT,     FontName);
@@ -348,11 +335,7 @@ void CPanelDialog::RefreshColors(void)
       if(m_is_section[vi]) continue;
       if(m_checkboxes[vi] == NULL) continue;
       int oi = m_orig_index[vi];
-      color c = m_state[oi] ? CheckedColor : UncheckedColor;
-      m_checkboxes[vi].Color(c);
-      string objName = m_checkboxes[vi].Name();
-      if(ObjectFind(m_chart_id, objName) >= 0)
-         ObjectSetInteger(m_chart_id, objName, OBJPROP_COLOR, c);
+      m_checkboxes[vi].Color(m_state[oi] ? CheckedColor : UncheckedColor);
    }
    ChartRedraw(m_chart_id);
 }
@@ -434,6 +417,13 @@ int OnInit()
    Dimension dlg = {dlgW, dlgH};
    Position  pos = CalcDialogPos(dlg, chart);
 
+   // CAppDialog prefixes its object names with rand(); unseeded instances on one chart
+   // draw the same names and steal each other's dialog frame.
+   uint seed = GetTickCount();
+   for(int i = 0; i < StringLen(TAG); i++)
+      seed = seed * 31 + StringGetCharacter(TAG, i);
+   MathSrand(seed);
+
    if(!ExtDialog.Create(0, "Strategy Checklist", 0,
                          pos.x, pos.y,
                          pos.x + dlgW, pos.y + dlgH))
@@ -450,7 +440,15 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
+   string prefix = ExtDialog.Name();
    ExtDialog.Destroy(reason);
+   // CAppDialog leaves its chart objects behind when an indicator is removed
+   if(StringLen(prefix) > 0)
+   {
+      ObjectsDeleteAll(0, prefix);
+      ObjectsDeleteAll(0, TAG + prefix);
+      ChartRedraw();
+   }
 }
 
 //+------------------------------------------------------------------+
