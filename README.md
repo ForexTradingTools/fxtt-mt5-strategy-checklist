@@ -1,10 +1,14 @@
 # FxTT Strategy Checklist MT5 — Free On-Chart Trading Checklist
 
-[![Platform](https://img.shields.io/badge/Platform-MetaTrader%205-blue)](#compatibility) [![Language](https://img.shields.io/badge/Language-MQL5-informational)](#repository-structure) [![Version](https://img.shields.io/badge/Version-3.0-orange)](#version-and-changelog) [![License](https://img.shields.io/badge/License-MIT-green)](#license) [![Price](https://img.shields.io/badge/Price-Free-brightgreen)](#overview)
+[![Platform](https://img.shields.io/badge/Platform-MetaTrader%205-blue)](#compatibility) [![Language](https://img.shields.io/badge/Language-MQL5-informational)](#repository-structure) [![Released](https://img.shields.io/badge/Released-2.0-orange)](#version-and-changelog) [![License](https://img.shields.io/badge/License-MIT-green)](#license) [![Price](https://img.shields.io/badge/Price-Free-brightgreen)](#overview)
 
 > A free MetaTrader 5 indicator that keeps your trading rules visible on the chart. Define up to 20 checks, group them with section headers, and tick each rule manually before you open a trade.
 
 ![FxTT Strategy Checklist on an MT5 chart](screenshots/strategy-checklist-mt5-chart.png)
+
+> **Released version: 2.0.** This is the build the [product page](https://forextradingtools.eu/en/marketplace/strategy-checklist) MT5 download ships, published as the [v2.0 release](https://github.com/ForexTradingTools/fxtt-mt5-strategy-checklist/releases/tag/v2.0). Its source is [`releases/FXTT_StrategyChecklist-v2_0.mq5`](releases/FXTT_StrategyChecklist-v2_0.mq5).
+>
+> **`src/` holds 3.0, which is unreleased.** It stays unreleased until the product page is updated for it. `releases/FXTT_StrategyChecklist-v3_0-preview.ex5` is a preview build of it.
 
 ## Overview
 
@@ -27,22 +31,22 @@ Product page: [Strategy Checklist for MetaTrader 5](https://forextradingtools.eu
 
 ## Installation
 
-### Using the compiled release
+### Released build
 
-1. Download [`FXTT_StrategyChecklist.ex5`](releases/FXTT_StrategyChecklist.ex5) from this repository's [Releases](https://github.com/ForexTradingTools/fxtt-mt5-strategy-checklist/releases) page.
+1. Download `FXTT_StrategyChecklist_MT5.zip` from the [v2.0 release](https://github.com/ForexTradingTools/fxtt-mt5-strategy-checklist/releases/tag/v2.0) and extract `FXTT_StrategyChecklist.ex5`.
 2. In MetaTrader 5, open **File → Open Data Folder**.
 3. Open `MQL5/Indicators/` and copy `FXTT_StrategyChecklist.ex5` into it.
 4. Restart MetaTrader 5, or right-click the Navigator panel and choose **Refresh**.
 5. Find **FXTT_StrategyChecklist** under **Navigator → Indicators** and attach it to a chart.
 6. Set your checklist items in the Inputs tab, then click **OK**.
 
-### Compiling from source
+### Unreleased 3.0 from source
 
-The complete source is [`src/FXTT_StrategyChecklist.mq5`](src/FXTT_StrategyChecklist.mq5). Open it in MetaEditor, compile it, and place the generated `.ex5` file in the terminal's `MQL5/Indicators/` folder. The source uses the standard MQL5 Controls library (`Dialog`, `CheckBox`, and `Label`) and has no private include-file dependency.
+The 3.0 source is [`src/FXTT_StrategyChecklist.mq5`](src/FXTT_StrategyChecklist.mq5). Open it in MetaEditor, compile it, and place the generated `.ex5` file in the terminal's `MQL5/Indicators/` folder. The source uses the standard MQL5 Controls library (`Dialog`, `CheckBox`, and `Label`) and has no private include-file dependency.
 
 ## Settings reference
 
-All settings are available when the indicator is attached to a chart.
+The tables below describe the unreleased 3.0 source. The released 2.0 build has fewer inputs; see [`releases/FXTT_StrategyChecklist-v2_0.mq5`](releases/FXTT_StrategyChecklist-v2_0.mq5).
 
 ### General
 
@@ -113,9 +117,13 @@ The panel is sized from the number of non-empty checklist lines. Section labels 
 
 ## Version and changelog
 
-### Version 3.0
+### v3.0 — unreleased (`src/`)
 
-The source declares version `3.0`; the matching compiled release is supplied at `releases/FXTT_StrategyChecklist.ex5`.
+- Not shipped until the product page covers it. Preview build: `releases/FXTT_StrategyChecklist-v3_0-preview.ex5`.
+
+### v2.0 — released
+
+- Build shipped by the product page MT5 download.
 
 ### Version 1.00 — 2023-12-09
 
@@ -128,9 +136,11 @@ The source declares version `3.0`; the matching compiled release is supplied at 
 ```text
 fxtt-mt5-strategy-checklist/
 ├── src/
-│   └── FXTT_StrategyChecklist.mq5       # Complete MQL5 source
+│   └── FXTT_StrategyChecklist.mq5                 # Unreleased 3.0 source
 ├── releases/
-│   └── FXTT_StrategyChecklist.ex5       # Compiled MT5 indicator
+│   ├── FXTT_StrategyChecklist-v2_0.ex5           # Released 2.0 build (ready to install)
+│   ├── FXTT_StrategyChecklist-v2_0.mq5           # Source of the released 2.0 build
+│   └── FXTT_StrategyChecklist-v3_0-preview.ex5   # Unreleased 3.0 preview build
 ├── screenshots/
 │   └── strategy-checklist-mt5-chart.png # Indicator on an MT5 chart
 ├── LICENSE
